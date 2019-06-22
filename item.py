@@ -35,10 +35,19 @@ class Item(Resource):
         if Item.find_by_name(name):
             return {'message': 'An item with name {} already exists.'.format(name)}, 400
 
-        data = Item.parser.parse_args()         # put valid args in data
+        data = Item.parser.parse_args()           # put valid args in data
 
         item = {'name': name, 'price': data['price']}
 
+        try:
+            Item.insert(item)
+        except:
+            return {"message": "An error occurred inserting the item."}, 500    # Internal server error
+
+        return item, 201
+
+    @classmethod
+    def insert(cls, item):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
 
@@ -48,13 +57,16 @@ class Item(Resource):
         connection.commit()
         connection.close()
 
-        return item, 201
-
-        return item, 201
 
     def delete(self, name):
-        global items
-        items = list(filter(lambda x: x['name'] != name, items))
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+
+        query = "DELETE FROM items WHERE name=?"
+        cursor.execute(query, (name,))
+
+        connection.commit()
+        connection.close()
         return {'message': 'Item deleted'}
 
     def put(self, name):
