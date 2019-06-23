@@ -11,17 +11,21 @@ app = Flask(__name__)
 app.secret_key = 'jose'
 api = Api(app)
 
-jwt = JWT(app, authenticate, identity)
-""" JWT creates a new endpoint: '/auth' <- send a username and password;
-    returns a jwt-token & we send it to the next request we make
-    jwt-token itself doesn't do anything; it's a cause of identity func
-"""
 
+# change the url: /login instead of /auth (by default)
+app.config['JWT_AUTH_URL_RULE'] = '/login'
+
+# config JWT to expire within half an hour
+app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=1800)
+
+# config JWT auth key name to be 'email' instead of default 'username'
+app.config['JWT_AUTH_USERNAME_KEY'] = 'email'
+jwt = JWT(app, authenticate, identity)
 
 
 api.add_resource(UserRegister, '/register')
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(ItemList, '/items')
 
-if __name__ == '__name__':
+if __name__ == '__main__':
     app.run(port=5000, debug=True)
