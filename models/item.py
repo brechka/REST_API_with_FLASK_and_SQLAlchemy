@@ -27,6 +27,10 @@ class ItemModel(db.Model):
     def find_by_name(cls, name):
         return cls.query.filter_by(name=name).first()     # SELECT * FROM items WHERE name=name LIMIT 1
 
+    @classmethod
+    def find_all(cls):
+        return cls.query.all()
+
     def save_to_db(self):                       # insert + update methods
         db.session.add(self)                    # session - collection of objects for the db
         db.session.commit()
