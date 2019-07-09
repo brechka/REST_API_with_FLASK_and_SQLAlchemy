@@ -10,6 +10,12 @@ class Item(Resource):
                         required=True,                          # no abble to get request without price
                         help='This field cannot be left blank.'
                         )
+    parser.add_argument('store_id',
+                        type=int,
+                        required=True,
+                        help='Every item needs a store id.'
+                        )
+
 
     @jwt_required()                             # at first authenticate, then - get method
     def get(self, name):
@@ -24,12 +30,12 @@ class Item(Resource):
 
         data = Item.parser.parse_args()           # put valid args in data
 
-        item = ItemModel(name, data['price'])
+        item = ItemModel(name, **data)
 
         try:
             item.save_to_db()
         except:
-            return {"message": "An error occurred inserting the item."}, 500    # Internal server error
+            return {'message': 'An error occurred inserting the item.'}, 500    # Internal server error
 
         return item.json(), 201
 
@@ -37,8 +43,8 @@ class Item(Resource):
         item = ItemModel.find_by_name(name)
         if item:
             item.delete_from_db()
-            return {"message": "Item deleted"}
-        return {"message": "Item not found."}, 404
+            return {'message': 'Item deleted.'}
+        return {'message': 'Item not found.'}, 404
 
     def put(self, name):
         data = Item.parser.parse_args()
@@ -58,4 +64,4 @@ class Item(Resource):
 class ItemList(Resource):
     def get(self):
         # list(map(lambda x: x.json(), ItemModel.query.all()))
-        return {"items": [item.json() for item in ItemModel.query.all()]}
+        return {'items': [item.json() for item in ItemModel.find_all()]}
