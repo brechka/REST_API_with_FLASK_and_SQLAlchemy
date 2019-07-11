@@ -1,9 +1,10 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
 
 from db import db
+from blacklist import BLACKLIST
 from resources.user import UserRegister, User, UserLogin, TokenRefresh
 from resources.item import Item, ItemList
 from resources.store import Store, StoreList
@@ -17,6 +18,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False        # SQLAlchemy - main 
 app.config['PROPAGATE_EXCEPTIONS'] = True
 # config JWT to expire within half an hour
 app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=1800)
+app.config['JWT_BLACKLIST_ENABLED'] = True
+# enabled a blacklist for both access and refresh tokens; no matter what users send, they won't have access
+app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
+# can be substituted by app.config['JWT_SECRET_KEY']
 app.secret_key = 'jose'
 api = Api(app)
 
@@ -28,25 +33,32 @@ def create_tables():
 
 jwt = JWTManager(app)                       # not creating auth; don't need authenticate & identity func
 
-@jwt.user_claims_loader                     # linked with JWTManager
+@jwt.user_claims_loader
+# Remember identity is what we define when creating the access token
 def add_claims_to_jwt(identity):
     if identity == 1:               # Instead of hard-coding, you chould read from a config file or a database
         return {'is_admin': True}
     return {'is_admin': False}
 
+@jwt.token_in_blacklist_loader
+# check if a token is blacklisted; it called automatically when blacklist is enabled
+def check_if_token_in_blacklist(decrypted_token):
+    return decrypted_token['identity'] in BLACKLIST     # True - if there, False - otherwise
+
 @jwt.expired_token_loader
 # notify about access_token expiring; ask to authenticate again
 def expired_token_callback():
     return jsonify({
-        'description': 'The token has expired.',
+        'message': 'The token has expired.',
         'error': 'token_expired'
     }), 401
 
 @jwt.invalid_token_loader
 # sended token in authorization header is not jwt
+# have to keep the argument here, since it's passed in by the caller internally
 def invalid_token_callback(error):
-    return jsonofy({
-        'description': 'Signature verification failed.',
+    return jsonify({
+        'message': 'Signature verification failed.',
         'error': 'invalid_token'
     }), 401
 
@@ -54,7 +66,7 @@ def invalid_token_callback(error):
 # don't send a jwt at all
 def missing_token_callback(error):
     return jsonify({
-        'description': 'Request does not contain an access token.',
+        "description": "Request does not contain an access token.",
         'error': 'authorization_required'
     }), 401
 
