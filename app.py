@@ -26,6 +26,13 @@ def create_tables():
 
 jwt = JWTManager(app)                       # not creating auth; don't need authenticate & identity func
 
+@jwt.user_claims_loader                     # linked with JWTManager
+def add_claims_to_jwt(identity):
+    if identity == 1:               # Instead of hard-coding, you chould read from a config file or a database
+        return {'is_admin': True}
+    return {'is_admin': False}
+
+
 api.add_resource(Store, '/store/<string:name>')
 api.add_resource(StoreList, '/stores')
 api.add_resource(Item, '/item/<string:name>')
