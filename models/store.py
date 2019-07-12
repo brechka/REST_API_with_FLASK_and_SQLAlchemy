@@ -12,7 +12,6 @@ class StoreModel(db.Model):
         self.name = name
 
     def json(self):
-        # trade of between speed of creation the store and speed of calling a json-method
         return {
             'id': self.id,
             'name': self.name,

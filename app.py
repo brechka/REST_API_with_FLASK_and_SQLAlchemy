@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from db import db
 from blacklist import BLACKLIST
-from resources.user import UserRegister, User, UserLogin, TokenRefresh
+from resources.user import UserRegister, User, UserLogin, UserLogout, TokenRefresh
 from resources.item import Item, ItemList
 from resources.store import Store, StoreList
 
@@ -13,14 +13,20 @@ from resources.store import Store, StoreList
 app = Flask(__name__)
 # use SQLite locally, if DB_URL is not defined
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False        # SQLAlchemy - main library, has already modif tracker
+
+# SQLAlchemy - main library, has already modif tracker
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 # allows to return specific messages for errors
 app.config['PROPAGATE_EXCEPTIONS'] = True
+
 # config JWT to expire within half an hour
 app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=1800)
 app.config['JWT_BLACKLIST_ENABLED'] = True
+
 # enabled a blacklist for both access and refresh tokens; no matter what users send, they won't have access
 app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
+
 # can be substituted by app.config['JWT_SECRET_KEY']
 app.secret_key = 'jose'
 api = Api(app)
@@ -31,10 +37,10 @@ def create_tables():
     db.create_all()
 
 
-jwt = JWTManager(app)                       # not creating auth; don't need authenticate & identity func
+jwt = JWTManager(app)
 
 @jwt.user_claims_loader
-# Remember identity is what we define when creating the access token
+# identity is what we define when creating the access token
 def add_claims_to_jwt(identity):
     if identity == 1:               # Instead of hard-coding, you chould read from a config file or a database
         return {'is_admin': True}
@@ -43,7 +49,7 @@ def add_claims_to_jwt(identity):
 @jwt.token_in_blacklist_loader
 # check if a token is blacklisted; it called automatically when blacklist is enabled
 def check_if_token_in_blacklist(decrypted_token):
-    return decrypted_token['identity'] in BLACKLIST     # True - if there, False - otherwise
+    return decrypted_token['jti'] in BLACKLIST     # True - if there, otherwise - False
 
 @jwt.expired_token_loader
 # notify about access_token expiring; ask to authenticate again
@@ -93,6 +99,7 @@ api.add_resource(ItemList, '/items')
 api.add_resource(UserRegister, '/register')
 api.add_resource(User, '/user/<int:user_id>')
 api.add_resource(UserLogin, '/login')
+api.add_resource(UserLogout, '/logout')
 api.add_resource(TokenRefresh, '/refresh')
 
 if __name__ == '__main__':

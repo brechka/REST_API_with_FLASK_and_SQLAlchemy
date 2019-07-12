@@ -1,4 +1,4 @@
-from flask_restful import Resource, reqparse       # reqparse - for parsing the request
+from flask_restful import Resource, reqparse       # reqparse used for parsing the request
 from flask_jwt_extended import (
     jwt_required,
     get_jwt_claims,
@@ -10,10 +10,10 @@ from models.item import ItemModel
 
 
 class Item(Resource):
-    parser = reqparse.RequestParser()           # belongs to class itself; new object for parsing a request
+    parser = reqparse.RequestParser()           # new object for parsing a request
     parser.add_argument('price',                # parser will look at he JSON payload
                         type=float,
-                        required=True,                          # no abble to get request without price
+                        required=True,          # no abble to get request without price
                         help='This field cannot be left blank.'
                         )
     parser.add_argument('store_id',
@@ -24,7 +24,7 @@ class Item(Resource):
 
 
     @jwt_required
-    # at first, authenticate, then - get method; will work both Fresh or Non fresh jwt-token
+    # at first, authenticate, then - get method; work with both Fresh or Non-fresh jwt-token
     def get(self, name):
         item = ItemModel.find_by_name(name)
         if item:
@@ -37,14 +37,14 @@ class Item(Resource):
         if ItemModel.find_by_name(name):
             return {'message': 'An item with name {} already exists.'.format(name)}, 400
 
-        data = Item.parser.parse_args()           # put valid args in data
+        data = Item.parser.parse_args()
 
         item = ItemModel(name, **data)
 
         try:
             item.save_to_db()
         except:
-            return {'message': 'An error occurred inserting the item.'}, 500    # Internal server error
+            return {'message': 'An error occurred inserting the item.'}, 500
 
         return item.json(), 201
 
@@ -78,7 +78,13 @@ class Item(Resource):
 class ItemList(Resource):
     @jwt_optional
     def get(self):
-        # get the identity stored in jwt: if there is not jwt - return None:
+        """
+        Get the JWT identity; if the user is logged in - return the entire item list.
+        Otherwise - return the item names.
+
+        User able to see orders that have been placed, but not see details about the orders
+        unless he has logged in.
+        """
         user_id = get_jwt_identity()
         # list(map(lambda x: x.json(), ItemModel.query.all()))
         items = [item.json() for item in ItemModel.find_all()]

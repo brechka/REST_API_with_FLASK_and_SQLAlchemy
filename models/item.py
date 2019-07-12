@@ -31,8 +31,8 @@ class ItemModel(db.Model):
     def find_all(cls):
         return cls.query.all()
 
-    def save_to_db(self):                       # insert + update methods
-        db.session.add(self)                    # session - collection of objects for the db
+    def save_to_db(self):                                 # insert + update methods
+        db.session.add(self)                              # session - collection of objects for the db
         db.session.commit()
 
     def delete_from_db(self):

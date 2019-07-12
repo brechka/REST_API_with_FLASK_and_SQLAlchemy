@@ -4,8 +4,11 @@ from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
     jwt_refresh_token_required,
-    get_jwt_identity
+    get_jwt_identity,
+    jwt_required,
+    get_raw_jwt
 )
+from blacklist import BLACKLIST
 from models.user import UserModel
 
 
@@ -22,7 +25,7 @@ _user_parser.add_argument('password',
                           )
 
 
-class UserRegister(Resource):                                   # allows users to sign up
+class UserRegister(Resource):
     def post(self):
         data = _user_parser.parse_args()
 
@@ -37,9 +40,9 @@ class UserRegister(Resource):                                   # allows users t
 
 class User(Resource):
     """
-    Retrieve user's details and delete users.
+    This resource can be useful when testing our Flask app.
+    We can retrieve user's details and delete users.
     """
-
     @classmethod
     def get(cls, user_id: int):
         user = UserModel.find_by_id(user_id)
@@ -56,7 +59,7 @@ class User(Resource):
         return {'message': 'User deleted.'}, 200
 
 
-class UserLogin(Resource):              # analog to authenticate func
+class UserLogin(Resource):              # analog to authenticate function
     def post(self):
         data = _user_parser.parse_args()
 
@@ -64,7 +67,7 @@ class UserLogin(Resource):              # analog to authenticate func
 
         # this is what 'authenticate()' is used to do
         if user and safe_str_cmp(user.password, data['password']):
-            # 'identity=' is what 'identity()' is used to do
+            # identity= is what identity() is used to do
             access_token = create_access_token(identity=user.id, fresh=True)        # create a JWT
             refresh_token = create_refresh_token(user.id)
             return {
@@ -75,9 +78,25 @@ class UserLogin(Resource):              # analog to authenticate func
         return {"mesage": "Invalid Credentials"}, 401
 
 
+class UserLogout(Resource):
+    @jwt_required                           # if not log in, it's not possible to log out
+    def post(self):
+        jti = get_raw_jwt()['jti']          # stand for jwt id; unique identifier for a jwt
+        BLACKLIST.add(jti)
+        return {'message': 'Successfully logged out.'}, 200
+
+
+
 class TokenRefresh(Resource):
     @jwt_refresh_token_required
-    def post(self):                         # if we don't have a refresh token - Error
+    def post(self):
+        """
+        Get a new access token without requiring username and password — only the 'refresh token'
+        provided in the /login endpoint.
+
+        `fresh=False` means that the user may have not given us their username and password
+        for potentially a long time (if the token has been refreshed many times over).
+        """
         current_user = get_jwt_identity()   # user id
         new_token = create_access_token(identity=current_user, fresh=False)
         return {'access_token': new_token}, 200
