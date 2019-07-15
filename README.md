@@ -1,4 +1,4 @@
-# REST_API_with_FLASK_and_SQLAlchemy
+# REST API with FLASK and SQLAlchemy
 
 The REST API built with Python, Flask, Flask-RESTful, and Flask-SQLAlchemy.
 
@@ -19,12 +19,12 @@ The REST API was created using Python 3.7. To run the APP you need to install th
 (better to use virtual environment):
 
 ```
-pip intall flask
+pip install flask
 pip install flask_restful
 pip install flask_restful_extended
 pip install flask_jwt_extended
 pip install werkzeug.security
-pip intall datetime
+pip install datetime
 ```
 
 
