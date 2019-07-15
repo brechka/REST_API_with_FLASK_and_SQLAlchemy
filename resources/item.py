@@ -24,7 +24,7 @@ class Item(Resource):
 
 
     @jwt_required
-    # at first, authenticate, then - get method; work with both Fresh or Non-fresh jwt-token
+    # user must provide a valid JWT; work with both Fresh or Non-fresh jwt-token
     def get(self, name):
         item = ItemModel.find_by_name(name)
         if item:
@@ -32,13 +32,14 @@ class Item(Resource):
         return {'message': 'Item not found.'}, 404
 
     @fresh_jwt_required
-    # can access only with fresh access token
+    # can access only with fresh JWT-token
     def post(self, name):
         if ItemModel.find_by_name(name):
             return {'message': 'An item with name {} already exists.'.format(name)}, 400
 
+        # retrieve data from the request body using the parser
         data = Item.parser.parse_args()
-
+        # create a new item
         item = ItemModel(name, **data)
 
         try:
@@ -50,6 +51,7 @@ class Item(Resource):
 
     @jwt_required
     def delete(self, name):
+        # the JWT must have a claim stating that is_admin is True
         claims = get_jwt_claims()
         if not claims['is_admin']:
             return {'message': 'Admin privilege required'}, 401
@@ -66,7 +68,7 @@ class Item(Resource):
         item = ItemModel.find_by_name(name)
 
         if item:
-            item.price = data['price']
+            item.price = data['price']          # price - the only thing is allowed to update
         else:
             item = ItemModel(name, **data)
 
@@ -78,13 +80,8 @@ class Item(Resource):
 class ItemList(Resource):
     @jwt_optional
     def get(self):
-        """
-        Get the JWT identity; if the user is logged in - return the entire item list.
-        Otherwise - return the item names.
-
-        User able to see orders that have been placed, but not see details about the orders
-        unless he has logged in.
-        """
+        # get the JWT; if the user is logged in - return the entire item list,
+        # otherwise - return the item names
         user_id = get_jwt_identity()
         # list(map(lambda x: x.json(), ItemModel.query.all()))
         items = [item.json() for item in ItemModel.find_all()]

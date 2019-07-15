@@ -14,7 +14,7 @@ app = Flask(__name__)
 # use SQLite locally, if DB_URL is not defined
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 
-# SQLAlchemy - main library, has already modif tracker
+# SQLAlchemy has already modif tracker
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # allows to return specific messages for errors
@@ -40,7 +40,7 @@ def create_tables():
 jwt = JWTManager(app)
 
 @jwt.user_claims_loader
-# identity is what we define when creating the access token
+# identity: define when creating the access token
 def add_claims_to_jwt(identity):
     if identity == 1:               # Instead of hard-coding, you chould read from a config file or a database
         return {'is_admin': True}
@@ -49,7 +49,7 @@ def add_claims_to_jwt(identity):
 @jwt.token_in_blacklist_loader
 # check if a token is blacklisted; it called automatically when blacklist is enabled
 def check_if_token_in_blacklist(decrypted_token):
-    return decrypted_token['jti'] in BLACKLIST     # True - if there, otherwise - False
+    return decrypted_token['jti'] in BLACKLIST     # True - if in BLACKLIST, otherwise - False
 
 @jwt.expired_token_loader
 # notify about access_token expiring; ask to authenticate again
@@ -61,7 +61,6 @@ def expired_token_callback():
 
 @jwt.invalid_token_loader
 # sended token in authorization header is not jwt
-# have to keep the argument here, since it's passed in by the caller internally
 def invalid_token_callback(error):
     return jsonify({
         'message': 'Signature verification failed.',
@@ -69,7 +68,7 @@ def invalid_token_callback(error):
     }), 401
 
 @jwt.unauthorized_loader
-# don't send a jwt at all
+# request does not contain required authorization (e.g. missing JWT)
 def missing_token_callback(error):
     return jsonify({
         "description": "Request does not contain an access token.",
@@ -77,7 +76,7 @@ def missing_token_callback(error):
     }), 401
 
 @jwt.needs_fresh_token_loader
-# send a Non fresh token, but required a fresh one
+# used token has been blacklisted
 def token_not_fresh_callback():
     return jsonify({
         'description': 'The token is not fresh.',

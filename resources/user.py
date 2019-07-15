@@ -59,7 +59,7 @@ class User(Resource):
         return {'message': 'User deleted.'}, 200
 
 
-class UserLogin(Resource):              # analog to authenticate function
+class UserLogin(Resource):
     def post(self):
         data = _user_parser.parse_args()
 
@@ -91,11 +91,8 @@ class TokenRefresh(Resource):
     @jwt_refresh_token_required
     def post(self):
         """
-        Get a new access token without requiring username and password — only the 'refresh token'
-        provided in the /login endpoint.
-
-        `fresh=False` means that the user may have not given us their username and password
-        for potentially a long time (if the token has been refreshed many times over).
+        Get a new access token without requiring logging in again;
+        `fresh=False` - the token has been refreshed many times over.
         """
         current_user = get_jwt_identity()   # user id
         new_token = create_access_token(identity=current_user, fresh=False)
