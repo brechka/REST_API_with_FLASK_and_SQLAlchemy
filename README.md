@@ -15,16 +15,11 @@ of the application and to interact with the database.
 
 ## Requirements
 
-The REST API was created using Python 3.7. To run the APP you need to install the following packages with pip
+The REST API was created using Python 3.7. To run the APP you need to install with pip packages listed in [requirements.txt](https://github.com/brechka/REST_API_with_FLASK_and_SQLAlchemy/blob/master/requirements.txt) 
 (better to use virtual environment):
 
 ```
-pip install flask
-pip install flask_restful
-pip install flask_restful_extended
-pip install flask_jwt_extended
-pip install werkzeug
-pip install datetime
+pip install -r requirements.txt
 ```
 
 
@@ -36,6 +31,7 @@ The entire application is contained within the app.py file.
 python app.py
 ```
 
+
 ## Description
 
 ###### [app.py](https://github.com/brechka/REST_API_with_FLASK_and_SQLAlchemy/blob/master/app.py)
@@ -44,8 +40,7 @@ In app.py Flask application is initialized and configured. API resources is also
 
 ###### [db.py](https://github.com/brechka/REST_API_with_FLASK_and_SQLAlchemy/blob/master/db.py)
 
-Database Python object is created, so other files can import it. All other files import the database variable 
-from this file.
+Database Python object is created, so all other files import the database variable from this file.
 
 ###### [blacklist.py](https://github.com/brechka/REST_API_with_FLASK_and_SQLAlchemy/blob/master/blacklist.py)
 
