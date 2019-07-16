@@ -1,3 +1,7 @@
+Flask
 Flask-RESTful
+Flask_Restful_Extended
 Flask-JWT-Extended
 Flask-SQLAlchemy
+werkzeug
+datetime
