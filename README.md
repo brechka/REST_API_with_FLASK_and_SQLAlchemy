@@ -23,7 +23,7 @@ pip install flask
 pip install flask_restful
 pip install flask_restful_extended
 pip install flask_jwt_extended
-pip install werkzeug.security
+pip install werkzeug
 pip install datetime
 ```
 
