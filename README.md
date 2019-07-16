@@ -47,6 +47,11 @@ In app.py Flask application is initialized and configured. API resources is also
 Database Python object is created, so other files can import it. All other files import the database variable 
 from this file.
 
+###### [blacklist.py](https://github.com/brechka/REST_API_with_FLASK_and_SQLAlchemy/blob/master/blacklist.py)
+
+This file contains the blacklist of the JWT tokens – it will be imported by app and the logout resource. Thus tokens 
+can be added to the blacklist when the user logs out.
+
 
 ###### [models/item.py](https://github.com/brechka/REST_API_with_FLASK_and_SQLAlchemy/blob/master/models/item.py)
 
